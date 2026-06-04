@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from envsec.checks import ALL_CHECKS
-from envsec.report import ScanReport, Finding
+from envsec.report import ScanReport, Finding, Severity
 
 
 class EnvironmentScanner:
@@ -36,7 +36,7 @@ class EnvironmentScanner:
                         check_id=f"{module_name}-error",
                         module=module_name,
                         title=f"Check failed: {check_fn.__name__}",
-                        severity=__import__("envsec.report", fromlist=["Severity"]).Severity.INFO,
+                        severity=Severity.INFO,
                         description=f"Check raised an exception: {exc}",
                     ))
 
@@ -60,7 +60,6 @@ class EnvironmentScanner:
                     for f in findings:
                         report.add_finding(f)
             except Exception as exc:
-                from envsec.report import Severity
                 report.add_finding(Finding(
                     check_id=f"{module_name}-error",
                     module=module_name,
