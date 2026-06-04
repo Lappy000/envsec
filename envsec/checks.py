@@ -2,13 +2,11 @@
 
 from __future__ import annotations
 
-import os
 import re
-import stat
 import subprocess
 import platform
 from pathlib import Path
-from typing import Callable, Generator
+from typing import Callable
 
 from envsec.report import Finding, Severity
 
@@ -442,7 +440,6 @@ def check_tool_availability() -> list[Finding]:
 
     for tool_name, cmd in TOOLS_TO_CHECK:
         rc, stdout, stderr = _run_cmd(cmd)
-        version_out = stdout or stderr
         if rc < 0:
             findings.append(Finding(
                 check_id=f"tools-{tool_name}",
