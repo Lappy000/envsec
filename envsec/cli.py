@@ -2,23 +2,28 @@
 
 from __future__ import annotations
 
-import json
 import sys
-from typing import Optional
 
 import click
 from rich.console import Console
 from rich.table import Table
-from rich.panel import Panel
 
 from envsec.scanner import EnvironmentScanner
-from envsec.report import ScanReport, render_terminal_report, render_json_report
+from envsec.report import render_terminal_report, render_json_report
 
 
 console = Console()
 
 
 @click.group(invoke_without_command=True)
+@click.pass_context
+def main(ctx: click.Context) -> None:
+    """Audit your development environment for security misconfigurations."""
+    if ctx.invoked_subcommand is None:
+        ctx.invoke(scan)
+
+
+@main.command()
 @click.option(
     "--format", "-f",
     type=click.Choice(["terminal", "json", "markdown"]),
@@ -27,32 +32,14 @@ console = Console()
 )
 @click.option("--strict", is_flag=True, help="Exit with code 1 if any HIGH severity issues found.")
 @click.option("--skip", multiple=True, help="Skip specific check modules (e.g. --skip ssh --skip git).")
-@click.pass_context
-def main(ctx: click.Context, format: str, strict: bool, skip: tuple[str, ...]) -> None:
-    """Audit your development environment for security misconfigurations."""
-    ctx.ensure_object(dict)
-    ctx.obj["format"] = format
-    ctx.obj["strict"] = strict
-    ctx.obj["skip"] = set(skip)
-
-    if ctx.invoked_subcommand is None:
-        ctx.invoke(scan)
-
-
-@main.command()
-@click.pass_context
-def scan(ctx: click.Context) -> None:
+def scan(format: str, strict: bool, skip: tuple[str, ...]) -> None:
     """Run all security checks against the current environment."""
-    fmt = ctx.obj.get("format", "terminal")
-    strict = ctx.obj.get("strict", False)
-    skip_modules = ctx.obj.get("skip", set())
-
-    scanner = EnvironmentScanner(skip_modules=skip_modules)
+    scanner = EnvironmentScanner(skip_modules=set(skip))
     report = scanner.run_all()
 
-    if fmt == "json":
+    if format == "json":
         click.echo(render_json_report(report))
-    elif fmt == "markdown":
+    elif format == "markdown":
         click.echo(report.to_markdown())
     else:
         render_terminal_report(report, console)
