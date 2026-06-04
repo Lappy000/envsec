@@ -112,6 +112,15 @@ def check_my_thing() -> list[Finding]:
 - click
 - rich
 
+## Development
+
+Run the test suite:
+
+```bash
+pip install pytest
+pytest
+```
+
 ## License
 
 MIT
